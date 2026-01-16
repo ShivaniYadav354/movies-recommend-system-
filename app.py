@@ -176,32 +176,40 @@ Built using **Machine Learning & TMDB API**
 
 
 
-def recommend (movie):
+def recommend(movie):
+    similarity = compute_similarity(movies)  # ✅ CREATE similarity here (lazy load)
+
     movies_index = movies[movies['title'] == movie].index[0]
     distance = similarity[movies_index]
-    movies_list= sorted(list(enumerate(distance)) , reverse=True, key=lambda x:x[1])[1:6]
 
-    recommended_movies =[]
+    movies_list = sorted(
+        list(enumerate(distance)),
+        reverse=True,
+        key=lambda x: x[1]
+    )[1:6]
+
+    recommended_movies = []
     recommended_movies_posters = []
 
     for i in movies_list:
         movie_id = movies.iloc[i[0]].movie_id
         recommended_movies.append(movies.iloc[i[0]].title)
         recommended_movies_posters.append(fetch_poster(movie_id))
+
     return recommended_movies, recommended_movies_posters
+
 
 
 
 movies_dict = pickle.load(open('movies_dict.pkl', 'rb'))
 movies = pd.DataFrame(movies_dict)
 
-@st.cache_resource
+@st.cache_resource(show_spinner=False)
 def compute_similarity(movies):
     cv = CountVectorizer(max_features=5000, stop_words='english')
     vectors = cv.fit_transform(movies['tags']).toarray()
     return cosine_similarity(vectors)
 
-similarity = compute_similarity(movies)
 
 
 
