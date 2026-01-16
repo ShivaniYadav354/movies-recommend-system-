@@ -5,6 +5,10 @@ import pickle
 import pandas as pd
 import requests
 
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
+
+
 #new
 st.set_page_config(
     page_title="Movie Recommender",
@@ -191,13 +195,17 @@ def recommend (movie):
 movies_dict = pickle.load(open('movies_dict.pkl', 'rb'))
 movies = pd.DataFrame(movies_dict)
 
-import os
-import pickle
+@st.cache_resource
+def compute_similarity(movies):
+    cv = CountVectorizer(max_features=5000, stop_words='english')
+    vectors = cv.fit_transform(movies['tags']).toarray()
+    return cosine_similarity(vectors)
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-similarity_path = os.path.join(BASE_DIR, "similarity.pkl")
+similarity = compute_similarity(movies)
 
-similarity = pickle.load(open(similarity_path, "rb"))
+
+
+
 
 
 
